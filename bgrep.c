@@ -150,7 +150,7 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
 
   for (i = current - (current % row); i < current; i++) {
     if (i == item->position) {
-      fprintf(file, "^^");
+      fprintf(file, "^-");
     } else {
       fprintf(file, "  ");
     }
@@ -159,6 +159,8 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
       fprintf(file, " ");
     }
   }
+
+  fprintf(file, "\n");
 }
 
 void print_result(format* fmt, FILE* file,
@@ -191,9 +193,12 @@ void print_result(format* fmt, FILE* file,
   size_t next;
   size_t item_offset;
   size_t item_row;
-  int col = 0;
 
-  char ascii[row + 1];
+  char ascii[row + 1 + group];
+  int ascii_col = 0;
+
+  char hexrow[row * 2 + group];
+  int hexrow_col = 0;
 
   while (item != NULL) {
     item_offset = item->position % row;
@@ -227,40 +232,51 @@ void print_result(format* fmt, FILE* file,
     {
       next = current + 1;
 
-      if (print_offset && current % row == 0) {
+      const char* h = bytetohex(buffer[current]);
+      hexrow[hexrow_col++] = h[0];
+      hexrow[hexrow_col++] = h[1];
+
+      char buffer_current = buffer[current];
+
+      int visible = isprint(buffer_current) && !isspace(buffer_current);
+
+      ascii[ascii_col++] = visible ? buffer_current : '.';
+
+      if (next % row != 0 && (next % group) == 0) {
+        hexrow[hexrow_col++] = ' ';
+        ascii[ascii_col++] = ' ';
+      }
+
+      if (next % row != 0 && next != ceil)
+      {
+        continue;
+      }
+
+      ascii[ascii_col] = '\0';
+      ascii_col = 0;
+
+      hexrow[hexrow_col] = '\0';
+      hexrow_col = 0;
+
+      if (print_offset) {
         fprintf(file, "%08lx: ", current - (current % row));
       }
 
-      fprintf(file, "%s", bytetohex(buffer[current]));
-      
-      if (isprint(buffer[current])) {
-        ascii[col++] = buffer[current];
-      }
-      else {
-        ascii[col++] = '.';
-      }
+      fprintf(file, "%s", hexrow);
 
-      if (next % row != 0 && (next % group) == 0) {
-        fprintf(file, " ");
+      if (print_ascii)
+      {
+        fprintf(file, "    %s\n", ascii);
+      }
+      else
+      {
+        fprintf(file, "\n");
       }
 
-      if (next % row == 0 || next == ceil) {
-        ascii[col] = '\0';
-        col = 0;
-
-        if (print_ascii) {
-          fprintf(file, "    %s\n", ascii);
-        }
-        else {
-          fprintf(file, "\n");
-        }
-
-        /* the current row is the one with the marked item on it */
-        if (current / row == item_row)
-        {
-          mark_position(fmt, file, current, item);
-          fprintf(file, "\n");
-        }
+      /* the current row is the one with the marked item on it */
+      if (current / row == item_row)
+      {
+        mark_position(fmt, file, current, item);
       }
     }
 
