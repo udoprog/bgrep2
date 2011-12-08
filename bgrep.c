@@ -140,7 +140,7 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
 {
   int print_offset = fmt->print_offset;
   int row          = fmt->row;
-  int group        = fmt->row;
+  int group        = fmt->group;
 
   size_t i;
 
@@ -148,7 +148,7 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
     fprintf(file, "          ");
   }
 
-  for (i = current - (current % row); i <= current; i++) {
+  for (i = current - (current % row); i < current; i++) {
     if (i == item->position) {
       fprintf(file, "^^");
     } else {
