@@ -336,9 +336,6 @@ int main(int argc, char* argv[])
       case 'a':
         fmt.print_ascii = 0;
         break;
-      case 's':
-        print_only_positions = 1;
-        break;
       case 'x':
         hex = 1;
         break;

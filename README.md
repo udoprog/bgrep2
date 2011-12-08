@@ -2,14 +2,24 @@ Introduction
 ============
 
 It basically does the same as https://github.com/tmbinc/bgrep with a few
-improvements, written from the ground up. I learned about this project after
-the fact I've written it and I like the name, therefore the project is called bgrep2
-but still produces the same 'bgrep' utility.
+improvements, written from the ground up.
+I learned about this project after the fact I've written this and I like the name,
+Therefore this project is named bgrep2, but still produces the same grep-like
+utility.
 
 bgrep is a binary grep utility, it allows you to match a binary pattern against a
 binary file, and presents it in a way which is easy to understand.
 
 So, something like the following.
+
+    #> bgrep itself /bin/ls
+    ==== 0x00015610 (0x00015610-0x00015620) ====
+    00015610: 69747365 6c660a20 202d6d20 20202020    itse lf.. .-m. ....
+              ^-
+    ====
+
+By default, the specified byte string is matched verbatim, by using the option '-x' 
+you can instead match a hexadecimal sequence.
 
     #> bgrep -x deff /bin/ls
     
