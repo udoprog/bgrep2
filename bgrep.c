@@ -274,7 +274,6 @@ int main(int argc, char* argv[])
 {
   char*       buffer = NULL;
   size_t      buffer_size;
-  FILE*       file = NULL;
 
   format fmt;
   fmt.row = 0x10;
@@ -347,8 +346,10 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  char*       pattern;
-  size_t      pattern_size;
+  char*         pattern = NULL;
+  size_t        pattern_size;
+  result_list*  result = NULL;
+  FILE*         file = NULL;
 
   if (hex) {
     pattern = parse_pattern(input_pattern, &pattern_size);
@@ -376,8 +377,8 @@ int main(int argc, char* argv[])
     fprintf(stderr, "%s: Failed to open file: %s\n", argv[0], strerror(errno));
     goto exit_error;
   }
-
-  result_list* result = result_list_new();
+  
+  result = result_list_new();
 
   buffer = create_buffer(file, &buffer_size);
 
