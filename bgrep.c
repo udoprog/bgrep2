@@ -270,6 +270,21 @@ void print_result(format* fmt, FILE* file,
   }
 }
 
+void print_usage(FILE* file)
+{
+  fprintf(file, "Usage: bgrep <pattern> [file]\n");
+  fprintf(file, "\n");
+  fprintf(file, "Options:\n");
+  fprintf(file, " -r <row>   : Specify row size in bytes when printing\n");
+  fprintf(file, " -g <group> : Specify grouping in bytes when printing\n");
+  fprintf(file, " -x         : Specify pattern as hexadecimal notation\n");
+  fprintf(file, "              example: 00xxff\n");
+  fprintf(file, " -C <size>  : Include a context of <size> around match\n");
+  fprintf(file, " -n         : Do not print offset\n");
+  fprintf(file, " -a         : Do not print ascii\n");
+  fprintf(file, " -h         : Print usage and exit\n");
+}
+
 int main(int argc, char* argv[])
 {
   char*       buffer = NULL;
@@ -286,7 +301,7 @@ int main(int argc, char* argv[])
 
   int c;
 
-  while ((c = getopt(argc, argv, "r:g:xC:na")) != -1)
+  while ((c = getopt(argc, argv, "r:g:xC:hna")) != -1)
   {
     switch (c)
     {
@@ -307,6 +322,9 @@ int main(int argc, char* argv[])
         break;
       case 'x':
         hex = 1;
+        break;
+      case 'h':
+        print_usage(stdout);
         break;
       case '?':
         if (optopt == 'c')
@@ -342,7 +360,7 @@ int main(int argc, char* argv[])
   }
 
   if (input_pattern == NULL) {
-    fprintf(stderr, "Usage: %s <pattern> [file]\n", argv[0]);
+    print_usage(stdout);
     return 1;
   }
 
