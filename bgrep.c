@@ -152,7 +152,7 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
   size_t i;
 
   if (print_offset) {
-    fprintf(file, "          ");
+    fprintf(file, "            ");
   }
 
   for (i = current - (current % row); i < current; i++) {
