@@ -9,6 +9,13 @@
 
 #define BUFFER_SIZE 0x1000
 
+/*
+ * define for portability reasons, size_t might not comply to the lx format.
+ */
+#ifndef HEXFORMAT
+#  define HEXFORMAT "%08lx"
+#endif
+
 char* parse_pattern(const char* input, size_t* pattern_size) {
   char* pattern = malloc(0x100);
   size_t size = 0;
@@ -163,6 +170,18 @@ void mark_position(format* fmt, FILE* file, size_t current, result_list_item* it
   fprintf(file, "\n");
 }
 
+void print_result_positions(
+                  format* fmt, FILE* file,
+                  result_list* result)
+{
+  result_list_item* item = result->first;
+
+  while (item != NULL) {
+    fprintf(file, "0x" HEXFORMAT "\n", item->position);
+    item = item->next;
+  }
+}
+
 void print_result(format* fmt, FILE* file,
                   const char* buffer, size_t buffer_size,
                   const char* pattern, size_t pattern_size,
@@ -226,7 +245,9 @@ void print_result(format* fmt, FILE* file,
       floor = 0;
     }
 
-    fprintf(file, "==== 0x%08lx (0x%08lx-0x%08lx) ====\n", item->position, floor, ceil);
+    fprintf(file, "==== "
+                  "0x" HEXFORMAT " (0x" HEXFORMAT "-0x" HEXFORMAT ")"
+                  " ====\n", item->position, floor, ceil);
 
     for (current = floor; current < ceil; current++)
     {
@@ -259,7 +280,7 @@ void print_result(format* fmt, FILE* file,
       hexrow_col = 0;
 
       if (print_offset) {
-        fprintf(file, "%08lx: ", current - (current % row));
+        fprintf(file, "0x" HEXFORMAT ": ", current - (current % row));
       }
 
       fprintf(file, "%s", hexrow);
@@ -289,13 +310,13 @@ void print_result(format* fmt, FILE* file,
 void print_usage(FILE* file)
 {
   fprintf(file, "Usage: bgrep <pattern> [file]\n");
-  fprintf(file, "\n");
   fprintf(file, "Options:\n");
+  fprintf(file, " -s         : Silent mode, only print locations\n");
   fprintf(file, " -r <row>   : Specify row size in bytes when printing\n");
   fprintf(file, " -g <group> : Specify grouping in bytes when printing\n");
   fprintf(file, " -x         : Specify pattern as hexadecimal notation\n");
-  fprintf(file, "              example: 00xxff\n");
-  fprintf(file, " -C <size>  : Include a context of <size> around match\n");
+  fprintf(file, "              i.e. 00ffde\n");
+  fprintf(file, " -C <size>  : Include context around a match\n");
   fprintf(file, " -n         : Do not print offset\n");
   fprintf(file, " -a         : Do not print ascii\n");
   fprintf(file, " -h         : Print usage and exit\n");
@@ -312,12 +333,13 @@ int main(int argc, char* argv[])
   fmt.context = 0;
   fmt.print_offset = 1;
   fmt.print_ascii = 1;
+  int only_positions = 0;
 
   int hex = 0;
 
   int c;
 
-  while ((c = getopt(argc, argv, "r:g:xC:hna")) != -1)
+  while ((c = getopt(argc, argv, "r:g:xC:hnas")) != -1)
   {
     switch (c)
     {
@@ -338,6 +360,9 @@ int main(int argc, char* argv[])
         break;
       case 'x':
         hex = 1;
+        break;
+      case 's':
+        only_positions = 1;
         break;
       case 'h':
         print_usage(stdout);
@@ -422,7 +447,15 @@ int main(int argc, char* argv[])
   }
 
   find_pattern(buffer, buffer_size, pattern, pattern_size, result);
-  print_result(&fmt, stdout, buffer, buffer_size, pattern, pattern_size, result);
+
+  if (only_positions)
+  {
+    print_result_positions(&fmt, stdout, result);
+  }
+  else
+  {
+    print_result(&fmt, stdout, buffer, buffer_size, pattern, pattern_size, result);
+  }
 
   free(pattern);
   free(buffer);
